@@ -10,3 +10,32 @@ Currently, two official plugins are available:
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+# Setup
+
+To install:
+`git clone https://github.com/ryanlee4761/choreom8.git`
+
+In your terminal:
+`npm install`
+
+To run:
+`npm run dev`
+
+# Making changes
+Always `git pull main` or `git pull [branchname]`
+
+Ensure you're on the right branch
+```
+git branch -a # list all branches
+git checkout [branchname]
+```
+
+When you're done with a change:
+```
+git add .
+# or git add [path/filename]
+
+git commit -m "[commit details]"
+git push origin [branchname]
+```
