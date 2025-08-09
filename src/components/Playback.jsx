@@ -4,6 +4,8 @@ export default function Playback({ file, onBack }) {
     const mediaRef = useRef(null);                        // lets us control the media directly :)
     const [src, setSrc] = useState(null);                 // used to store the "object URL" for the file
     const [isPlaying, setIsPlaying] = useState(false);    // for the play + pause button
+    const [loopStart, setLoopStart] = useState(null);
+    const [loopEnd, setLoopEnd] = useState(null);
 
     // Generate and clean up a temporary object URL safely
     useEffect(() => {
@@ -23,22 +25,49 @@ export default function Playback({ file, onBack }) {
 
     // Sync the isPlaying state with actual media events
     useEffect(() => {
-        const mediaElement = mediaRef.current;
-        if (!mediaElement) return;
+        const media = mediaRef.current;
+        if (!media) return;
 
         const handlePlay = () => setIsPlaying(true);
         const handlePause = () => setIsPlaying(false);
 
-        mediaElement.addEventListener("play", handlePlay);
-        mediaElement.addEventListener("pause", handlePause);
+        media.addEventListener("play", handlePlay);
+        media.addEventListener("pause", handlePause);
 
         return () => {
-            mediaElement.removeEventListener("play", handlePlay);
-            mediaElement.removeEventListener("pause", handlePause);
+            media.removeEventListener("play", handlePlay);
+            media.removeEventListener("pause", handlePause);
         };
     }, [src]);
 
-    // Check that BOTH the file and the URL are valid just in case
+    useEffect(() => {
+        const media = mediaRef.current;
+        if (!media) return;
+
+        function onTimeUpdate() {
+            // Use the media duration for defaults
+            const duration = media.duration;
+            const start = loopStart ?? 0;
+            const end = loopEnd ?? duration;
+
+            if (media.currentTime < start) {
+                media.currentTime = start;
+            }
+            if (media.currentTime >= end) {
+                media.currentTime = start;
+                // If you want smooth looping after endpoint, also call play()
+                if (media.paused) media.play();
+            }
+        }
+
+        media.addEventListener('timeupdate', onTimeUpdate);
+        return () => {
+            media.removeEventListener('timeupdate', onTimeUpdate);
+        };
+    }, [src, loopStart, loopEnd]);
+
+    /* Check that BOTH the file and the URL are valid just in case. Sometimes, apparently
+    the render cycle might be in the middle of making the URL, so this catches that case. */
     if (!file || !src) {
         return null;
     }
@@ -55,7 +84,22 @@ export default function Playback({ file, onBack }) {
         } else {
             mediaRef.current.play();
         }
-        // Do not manually setIsPlaying here; let the events below handle sync for best accuracy.
+        // Do not manually setIsPlaying here; let the events above handle sync for best accuracy.
+    }
+
+    function handleLoopStart() {
+        if (loopStart === null) {
+            setLoopStart(mediaRef.current?.currentTime ?? 0);
+        } else {
+            setLoopStart(null); // unset (defaults to the start of the file using logic later)
+        }
+    }
+    function handleLoopEnd() {
+        if (loopEnd === null) {
+            setLoopEnd(mediaRef.current?.currentTime ?? 0);
+        } else {
+            setLoopEnd(null); // unset (defaults to the end of the file using logic later)
+        }
     }
 
     return (
@@ -93,6 +137,33 @@ export default function Playback({ file, onBack }) {
                     >
                         {isPlaying ? "⏸ Pause" : "▶ Play"}
                     </button>
+                    <button
+                        onClick={handleLoopStart}
+                        className={loopStart !== null
+                            ? "bg-red-600 text-white px-4 py-2 rounded"
+                            : "bg-green-600 text-white px-4 py-2 rounded"}
+                    >
+                        {loopStart !== null ? "Clear Loop Start" : "Set Loop Start"}
+                    </button>
+                    <button
+                        onClick={handleLoopEnd}
+                        className={loopEnd !== null
+                            ? "bg-red-600 text-white px-4 py-2 rounded"
+                            : "bg-green-600 text-white px-4 py-2 rounded"}
+                    >
+                        {loopEnd !== null ? "Clear Loop End" : "Set Loop End"}
+                    </button>
+                </div>
+                {/* OPTIONAL: Show current loop points */}
+                <div className="mt-4 text-gray-700 flex gap-8 text-sm">
+                    <div>
+                        <strong>Loop Start:</strong>{" "}
+                        {loopStart !== null ? loopStart.toFixed(2) + "s" : "Not Set"}
+                    </div>
+                    <div>
+                        <strong>Loop End:</strong>{" "}
+                        {loopEnd !== null ? loopEnd.toFixed(2) + "s" : "Not Set"}
+                    </div>
                 </div>
             </div>
         </div>
