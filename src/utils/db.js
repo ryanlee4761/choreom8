@@ -29,6 +29,11 @@ export async function getFile(id) {
   return db.uploads.get(id);
 }
 
+// Rename a file
+export async function updateFileName(id, newName) {
+  await db.uploads.update(id, {name: newName});
+}
+
 // Delete a file by id
 export async function deleteFile(id) {
   // Optionally delete associated comments, too!

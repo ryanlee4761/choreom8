@@ -7,12 +7,7 @@ import Camera from '../pages/Camera';
 
 const routes = [
     {
-        path: '/',
-        element: <Home />,
-        name: 'Home',
-    },
-    {
-        path: '/uploads',
+        path:'/',
         element: <Uploads />,
         name: 'Uploads',
     },

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Library from "../components/Library";
 import Playback from "../components/Playback";
-import { saveFile, getAllFiles } from "../utils/db"
+import { saveFile, getAllFiles, updateFileName, deleteFile } from "../utils/db"
 import { v4 as uuidv4 } from "uuid";
 
 export default function Uploads() {
@@ -50,6 +50,11 @@ export default function Uploads() {
         uploadButton.current.click();
     }
 
+    async function handleRenameFile(id, newName) {
+        await updateFileName(id, newName);
+        setFiles(await getAllFiles());
+    }
+
     return (
         <div>
             <h1 className="text-3xl font-bold mb-4">Uploads</h1>
@@ -72,7 +77,7 @@ export default function Uploads() {
                 + Import
             </button>
 
-            <Library files={files} onPlay={handlePlay} onDelete={handleDeleteFile} />
+            <Library files={files} onPlay={handlePlay} onDelete={handleDeleteFile} onRename={handleRenameFile} />
 
             {isPlaybackOpen && currentFile && (
                 <Playback
