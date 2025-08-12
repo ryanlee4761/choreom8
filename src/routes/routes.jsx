@@ -22,11 +22,6 @@ const routes = [
         name: 'Drafts',
     },
     {
-        path: '/playback',
-        element: <Playback />,
-        name: 'Playback',
-    },
-    {
         path: '/camera',
         element: <Camera />,
         name: 'Camera',
