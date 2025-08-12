@@ -1,16 +1,16 @@
 import { useRef, useEffect, useState } from "react";
+import CommentSection from "./CommentSection";
 
-export default function Playback({ file, onBack }) {
+export default function Playback({ file, fileInfo, onBack }) {
     const mediaRef = useRef(null);                        // lets us control the media directly :)
     const [src, setSrc] = useState(null);                 // used to store the "object URL" for the file
     const [isPlaying, setIsPlaying] = useState(false);    // for the play + pause button
     const [loopStart, setLoopStart] = useState(null);
     const [loopEnd, setLoopEnd] = useState(null);
-    // const [rate, setRate] = useState(1);
     const [isMirrored, setIsMirrored] = useState(false);
     // const [isCountingDown, setIsCountingDown] = useState(false);
     const [isLooping, setIsLooping] = useState(true);
-
+    const [currentTime, setCurrentTime] = useState(0);
 
     // Generate and clean up a temporary object URL safely
     useEffect(() => {
@@ -55,18 +55,22 @@ export default function Playback({ file, onBack }) {
             const start = loopStart ?? 0;
             const end = loopEnd ?? duration;
 
+            console.log(end);
+
             if (media.currentTime < start) {
                 media.currentTime = start;
             }
             if (media.currentTime >= end) {
                 // If you want smooth looping after endpoint, also call play()
-                if (isLooping && media.paused) {
+                if (isLooping) {
                     media.currentTime = start;
                     media.play();
-                } else { 
+                } else {
                     media.pause();
                 };
             }
+
+            setCurrentTime(media.currentTime); // for the sake of comment syncing
         }
 
         media.addEventListener('timeupdate', onTimeUpdate);
@@ -86,12 +90,24 @@ export default function Playback({ file, onBack }) {
     const isVideo = file.type.startsWith("video");
 
     function togglePlayPause() {
-        if (!mediaRef.current) return;
+        const media = mediaRef.current;
+        if (!media) return;
+
+        const start = loopStart ?? 0;
+        const duration = media.duration || 0;
+        const end = loopEnd ?? duration;
 
         if (isPlaying) {
-            mediaRef.current.pause();
+            media.pause();
         } else {
-            mediaRef.current.play();
+            // If NOT looping, and at (or after) end, reset to loop start on play
+            if (
+                !isLooping &&                   // Loop toggle is off
+                (Math.abs(media.currentTime - end) < 0.1 || media.currentTime >= end)
+            ) {
+                media.currentTime = start;      // Rewind to the start breakpoint (or 0)
+            }
+            media.play();
         }
         // Do not manually setIsPlaying here; let the events above handle sync for best accuracy.
     }
@@ -119,7 +135,18 @@ export default function Playback({ file, onBack }) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-            <div className="relative bg-white p-6 rounded shadow-lg w-full max-w-2xl flex flex-col items-center">
+            <div
+                className="
+                    relative bg-white p-6 rounded shadow-lg w-full max-w-2xl flex flex-col items-center
+                    w-full h-full overflow-y-auto
+                    "
+                style={{
+                    maxHeight: "90vh",         // limit modal to 90% of viewport height
+                    width: "100%",             // responsive width
+                    maxWidth: "800px",         // or your favorite breakpoint
+                    overflowY: "auto"          // modal scrolls if content overflows
+                }}
+            >
                 <button
                     onClick={onBack}
                     className="absolute top-4 left-4 px-3 py-1 bg-gray-800 text-white rounded text-lg"
@@ -169,13 +196,13 @@ export default function Playback({ file, onBack }) {
                     >
                         {loopEnd !== null ? "Clear Loop End" : "Set Loop End"}
                     </button>
-                    <button 
+                    <button
                         onClick={handleLoopingUpdate}
                         className={isLooping
                             ? "bg-green-600 text-white px-4 py-2 rounded"
                             : "bg-red-600 text-white px-4 py-2 rounded"}
                     >
-                        {isLooping ? "🔁" : <s>🔁</s>}
+                        {isLooping ? "🔁" : "➡️"}
                     </button>
                     <button
                         onClick={handleMirroringUpdate}
@@ -186,7 +213,14 @@ export default function Playback({ file, onBack }) {
                         🪞
                     </button>
                 </div>
-                {/* OPTIONAL: Show current loop points */}
+
+                <CommentSection
+                    fileId={fileInfo.id}
+                    currentTime={currentTime}
+                    onSeek={ts => mediaRef.current.currentTime = ts}
+                />
+
+                {/* OPTIONAL: Show current loop timestamps */}
                 <div className="mt-4 text-gray-700 flex gap-8 text-sm">
                     <div>
                         <strong>Loop Start:</strong>{" "}
@@ -196,12 +230,8 @@ export default function Playback({ file, onBack }) {
                         <strong>Loop End:</strong>{" "}
                         {loopEnd !== null ? loopEnd.toFixed(2) + "s" : "Not Set"}
                     </div>
-                    <div>
-                        <strong>Looping:</strong>{" "}
-                        {isLooping ? "Yes" : "No"}
-                    </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

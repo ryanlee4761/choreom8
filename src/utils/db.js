@@ -1,37 +1,72 @@
-import { openDB } from 'idb';
+import Dexie from 'dexie';
 
-const DB_NAME = 'choreom8-library';
-const STORE_NAME = 'uploads';
+export const db = new Dexie('choreom8-library');
 
-export async function getDB() {
-  return openDB(DB_NAME, 1, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-      }
-    },
-  });
-}
+db.version(1).stores({
+  uploads: '++id,name,type',           // auto-incrementing id, name, type
+  comments: '++id,fileId,timestamp,text' // auto-increment, indexed by fileId/timestamp/text
+});
 
-// Save a file (as {id, name, type, data})
+// ------- FILE CRUD -------
+
+// Save a file (returns new file's id)
 export async function saveFile({ name, type, file }) {
-  const db = await getDB();
-  return db.add(STORE_NAME, {
+  return db.uploads.add({
     name,
     type,
-    data: file, // File or Blob object
-    created: new Date(),
+    data: file,     // File or Blob object
+    // No created property
   });
 }
 
-// List all files
+// Get all files
 export async function getAllFiles() {
-  const db = await getDB();
-  return db.getAll(STORE_NAME);
+  return db.uploads.toArray();
 }
 
-// Remove file by id
+// Get a single file by id (if you need it)
+export async function getFile(id) {
+  return db.uploads.get(id);
+}
+
+// Delete a file by id
 export async function deleteFile(id) {
-  const db = await getDB();
-  return db.delete(STORE_NAME, id);
+  // Optionally delete associated comments, too!
+  await db.comments.where('fileId').equals(id).delete();
+  return db.uploads.delete(id);
+}
+
+// ------- PER-FILE COMMENTS CRUD -------
+
+// Add a comment for a file (returns comment's id)
+export async function addComment({ fileId, timestamp, text }) {
+  return db.comments.add({
+    fileId,
+    timestamp,
+    text,
+    // No created property
+  });
+}
+
+// Get all comments for a file (sorted)
+export async function getCommentsForFile(fileId) {
+  return db.comments
+    .where('fileId')
+    .equals(fileId)
+    .sortBy('timestamp');
+}
+
+// Edit (update) a comment's text
+export async function editComment(id, newText) {
+  return db.comments.update(id, { text: newText });
+}
+
+// Delete a comment by id
+export async function deleteComment(id) {
+  return db.comments.delete(id);
+}
+
+// (Optional) Get a single comment by id
+export async function getComment(id) {
+  return db.comments.get(id);
 }

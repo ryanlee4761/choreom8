@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Library from "../components/Library";
 import Playback from "../components/Playback";
 import { saveFile, getAllFiles } from "../utils/db"
+import { v4 as uuidv4 } from "uuid";
 
 export default function Uploads() {
     const [files, setFiles] = useState([]); // makes an empty array called "files" to add files to later
@@ -17,7 +18,12 @@ export default function Uploads() {
     async function handleUpload(event) {
         const uploadedFiles = Array.from(event.target.files);
         for (const file of uploadedFiles) {
-            await saveFile({ name: file.name, type: file.type, file });
+            await saveFile({
+                id: uuidv4(),
+                name: file.name,
+                type: file.type,
+                file
+            });
         }
         const updated = await getAllFiles();
         setFiles(updated);
@@ -27,6 +33,12 @@ export default function Uploads() {
     function handlePlay(file) {
         setCurrentFile(file);
         setIsPlaybackOpen(true);
+    }
+
+    async function handleDeleteFile(id) {
+        if (!window.confirm("Are you sure you want to delete this file? This will also remove its comments.")) return;
+        await deleteFile(id);
+        setFiles(await getAllFiles());
     }
 
     function handleClosePlayback() {
@@ -60,10 +72,14 @@ export default function Uploads() {
                 + Import
             </button>
 
-            <Library files={files} onPlay={handlePlay} />
+            <Library files={files} onPlay={handlePlay} onDelete={handleDeleteFile} />
 
             {isPlaybackOpen && currentFile && (
-                <Playback file={currentFile.data} fileInfo={currentFile} onBack={handleClosePlayback} />
+                <Playback
+                    file={currentFile.data}
+                    fileInfo={currentFile}
+                    onBack={handleClosePlayback}
+                />
             )}
         </div>
     );
