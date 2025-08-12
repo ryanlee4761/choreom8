@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import SpeedModal from "./SpeedModal";
 import CommentSection from "./CommentSection";
 
 export default function Playback({ file, fileInfo, onBack }) {
@@ -11,6 +12,17 @@ export default function Playback({ file, fileInfo, onBack }) {
     // const [isCountingDown, setIsCountingDown] = useState(false);
     const [isLooping, setIsLooping] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
+
+    const [playbackRate, setPlaybackRate] = useState(1);
+    const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
+
+    useEffect(() => {
+        function handleEsc(e) {
+            if (e.key === 'Escape') onBack();
+        }
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
 
     // Generate and clean up a temporary object URL safely
     useEffect(() => {
@@ -78,6 +90,13 @@ export default function Playback({ file, fileInfo, onBack }) {
             media.removeEventListener('timeupdate', onTimeUpdate);
         };
     }, [src, loopStart, loopEnd, isLooping]);
+
+    useEffect(() => {
+        const media = mediaRef.current;
+        if (media) {
+            media.playbackRate = playbackRate;
+        }
+    }, [playbackRate]);
 
     /* Check that BOTH the file and the URL are valid just in case. Sometimes, apparently
     the render cycle might be in the middle of making the URL, so this catches that case. */
@@ -173,20 +192,14 @@ export default function Playback({ file, fileInfo, onBack }) {
                         style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
                     />
                 )}
-                <div className="flex gap-4 mt-2">
-                    <button
-                        onClick={togglePlayPause}
-                        className="bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                        {isPlaying ? "⏸ Pause" : "▶ Play"}
-                    </button>
+                <div className="flex gap-4 mt-2 items-center">
                     <button
                         onClick={handleLoopStart}
                         className={loopStart !== null
                             ? "bg-red-600 text-white px-4 py-2 rounded"
                             : "bg-green-600 text-white px-4 py-2 rounded"}
                     >
-                        {loopStart !== null ? "Clear Loop Start" : "Set Loop Start"}
+                        {loopStart !== null ? "Reset Start" : "Set Start"}
                     </button>
                     <button
                         onClick={handleLoopEnd}
@@ -194,16 +207,28 @@ export default function Playback({ file, fileInfo, onBack }) {
                             ? "bg-red-600 text-white px-4 py-2 rounded"
                             : "bg-green-600 text-white px-4 py-2 rounded"}
                     >
-                        {loopEnd !== null ? "Clear Loop End" : "Set Loop End"}
+                        {loopEnd !== null ? "Reset End" : "Set End"}
                     </button>
                     <button
+                        onClick={togglePlayPause}
+                        className={`
+                            bg-blue-600 text-white rounded-full
+                            w-20 h-20 flex items-center justify-center
+                            text-4xl shadow-lg transition
+                            hover:bg-blue-700 focus:outline-none
+                        `}
+                        aria-label={isPlaying ? "Pause" : "Play"}
+                    >
+                        {isPlaying ? "⏸" : "▶"}
+                    </button>
+                    {/*<button
                         onClick={handleLoopingUpdate}
                         className={isLooping
                             ? "bg-green-600 text-white px-4 py-2 rounded"
                             : "bg-red-600 text-white px-4 py-2 rounded"}
                     >
                         {isLooping ? "🔁" : "➡️"}
-                    </button>
+                    </button> */}
                     <button
                         onClick={handleMirroringUpdate}
                         className={isMirrored
@@ -212,7 +237,22 @@ export default function Playback({ file, fileInfo, onBack }) {
                     >
                         🪞
                     </button>
+
+                    <button
+                        onClick={() => setIsSpeedModalOpen(true)}
+                        className="bg-purple-600 text-white px-4 py-2 rounded"
+                    >
+                        Speed:&nbsp;<span className="font-bold">{playbackRate.toFixed(2)}x</span>
+                    </button>
                 </div>
+
+                {isSpeedModalOpen && (
+                    <SpeedModal
+                        playbackRate={playbackRate}
+                        setPlaybackRate={setPlaybackRate}
+                        onClose={() => setIsSpeedModalOpen(false)}
+                    />
+                )}
 
                 <CommentSection
                     fileId={fileInfo.id}

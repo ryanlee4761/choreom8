@@ -10,10 +10,22 @@ import {
     deleteComment,
 } from "../utils/db"; // Your Dexie helpers
 
+function formatTimestamp(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    // pad single digit seconds with a leading zero
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 export default function CommentSection({ fileId, currentTime, onSeek }) {
     const refs = useRef({});
     const [comments, setComments] = useState([]);
     const [editingCommentId, setEditingCommentId] = useState(null);
+
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
 
     // 1. Load comments on mount or when fileId changes
     useEffect(() => {
@@ -55,6 +67,42 @@ export default function CommentSection({ fileId, currentTime, onSeek }) {
         }
     }, [currentTime, sortedComments]);
 
+    async function summarizeLLM({ sortedComments, setSummary, setError, setLoading }) {
+        setLoading(true);
+        setError(null);
+
+        // Prepare comments string for API
+        const commentsStr = sortedComments
+            .map(c => `[${formatTimestamp(c.timestamp)}] ${c.text}`)
+            .join('\n');
+
+        try {
+            const response = await fetch(
+                'https://noggin.rea.gent/resulting-moth-4975',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer rg_v1_3dotipbx5430q6oswu2gmsx8eqvc71s6pooy_ngk',
+                    },
+                    body: JSON.stringify({
+                        comments: commentsStr,                        // multi-line string
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("LLM summarization failed");
+            }
+            const summary = await response.text();
+            setSummary(summary);
+        } catch (err) {
+            setError("Failed to summarize comments.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <div className="overflow-y-auto max-h-64 mt-4 w-full border rounded p-3 bg-gray-50">
             {/* Add new comment form */}
@@ -86,6 +134,30 @@ export default function CommentSection({ fileId, currentTime, onSeek }) {
                     />
                 )
             )}
+            <button
+                onClick={() =>
+                    summarizeLLM({
+                        sortedComments,
+                        setSummary,
+                        setError,
+                        setLoading
+                    })
+                }
+                disabled={loading || sortedComments.length === 0}
+            >
+                {loading ? "Summarizing..." : "Summarize Comments"}
+            </button>
+            {summary && (
+                <div className="my-2 p-2 border rounded bg-yellow-50 text-sm flex flex-row justify-between items-center">
+                    <span>{summary}</span>
+                    <button
+                        className="ml-2 text-xs text-gray-600 hover:underline"
+                        onClick={() => setSummary(null)}
+                        title="Dismiss summary"
+                    >✕</button>
+                </div>
+            )}
+
         </div>
     );
 }
