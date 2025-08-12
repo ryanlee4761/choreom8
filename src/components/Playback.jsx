@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import Settings from "./Settings";
 import SpeedModal from "./SpeedModal";
 import CommentSection from "./CommentSection";
 
@@ -15,6 +16,8 @@ export default function Playback({ file, fileInfo, onBack }) {
 
     const [playbackRate, setPlaybackRate] = useState(1);
     const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
+
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     useEffect(() => {
         function handleEsc(e) {
@@ -221,30 +224,31 @@ export default function Playback({ file, fileInfo, onBack }) {
                     >
                         {isPlaying ? "⏸" : "▶"}
                     </button>
-                    {/*<button
-                        onClick={handleLoopingUpdate}
-                        className={isLooping
-                            ? "bg-green-600 text-white px-4 py-2 rounded"
-                            : "bg-red-600 text-white px-4 py-2 rounded"}
-                    >
-                        {isLooping ? "🔁" : "➡️"}
-                    </button> */}
-                    <button
-                        onClick={handleMirroringUpdate}
-                        className={isMirrored
-                            ? "bg-red-600 text-white px-4 py-2 rounded"
-                            : "bg-green-600 text-white px-4 py-2 rounded"}
-                    >
-                        🪞
-                    </button>
-
                     <button
                         onClick={() => setIsSpeedModalOpen(true)}
                         className="bg-purple-600 text-white px-4 py-2 rounded"
                     >
                         Speed:&nbsp;<span className="font-bold">{playbackRate.toFixed(2)}x</span>
                     </button>
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="bg-gray-600 text-white px-4 py-2 rounded"
+                    >
+                        ⚙️
+                    </button>
                 </div>
+
+                {isSettingsOpen && (
+                    <Settings
+                        onClose={() => setIsSettingsOpen(false)}
+                        isLooping={isLooping}
+                        setIsLooping={setIsLooping}
+                        isMirrored={isMirrored}
+                        setIsMirrored={setIsMirrored}
+                    // isCountingDown={isCountingDown}
+                    // setIsCountingDown={setIsCountingDown}
+                    />
+                )}
 
                 {isSpeedModalOpen && (
                     <SpeedModal
