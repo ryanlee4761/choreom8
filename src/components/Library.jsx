@@ -33,7 +33,7 @@ export default function Library({ files, onPlay, onDelete, onRename }) {
           className="flex items-center justify-between py-2"
         >
           {/* File name or edit field */}
-          <div className="flex-1 mr-4">
+          <div className="flex-1 mr-4 overflow-hidden">
             {editingId === file.id ? (
               <input
                 type="text"
@@ -43,7 +43,7 @@ export default function Library({ files, onPlay, onDelete, onRename }) {
                 onKeyDown={handleKeyDown}
               />
             ) : (
-              <span>{file.name}</span>
+              <span className="block truncate">{file.name}</span>
             )}
           </div>
 
@@ -75,14 +75,35 @@ export default function Library({ files, onPlay, onDelete, onRename }) {
                 <button
                   onClick={() => startEditing(file)}
                   className="px-2 py-1 bg-yellow-500 text-white rounded"
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: '#f3f4f6',
+                    color: '#374151',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    flex: 1
+                  }}
                 >
-                  Rename
+                    ✏️ Edit
                 </button>
                 <button
                   onClick={() => onDelete(file.id)}
                   className="px-2 py-1 bg-red-600 text-white rounded"
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: '#fef2f2',
+                      color: '#dc2626',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
                 >
-                  Delete
+                    🗑️
                 </button>
               </>
             )}
