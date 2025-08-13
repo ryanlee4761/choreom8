@@ -33,7 +33,7 @@ export default function Library({ files, onPlay, onDelete, onRename }) {
           className="flex items-center justify-between py-2"
         >
           {/* File name or edit field */}
-          <div className="flex-1 mr-4">
+          <div className="flex-1 mr-4 overflow-hidden">
             {editingId === file.id ? (
               <input
                 type="text"
@@ -43,7 +43,7 @@ export default function Library({ files, onPlay, onDelete, onRename }) {
                 onKeyDown={handleKeyDown}
               />
             ) : (
-              <span>{file.name}</span>
+              <span className="block truncate">{file.name}</span>
             )}
           </div>
 
