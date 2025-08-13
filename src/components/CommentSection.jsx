@@ -104,12 +104,41 @@ export default function CommentSection({ fileId, currentTime, onSeek }) {
     }
 
     return (
-        <div className="overflow-y-auto max-h-64 mt-4 w-full border rounded p-3 bg-gray-50">
+        <div className="h-full overflow-y-auto w-full border rounded p-3 bg-gray-50 flex flex-col flex-center">
             {/* Add new comment form */}
             <CommentForm
                 currentTime={currentTime}
                 onAddComment={handleAddComment}
             />
+
+            <button
+                onClick={() =>
+                    summarizeLLM({
+                        sortedComments,
+                        setSummary,
+                        setError,
+                        setLoading
+                    })
+                }
+                disabled={loading || sortedComments.length === 0}
+                className="
+                    px-4 py-2 bg-gray-400 text-white rounded font-semibold shadow
+                    hover:bg-gray-500 focus:outline-none transition w-auto
+                    "
+            >
+                {loading ? "Summarizing..." : "✦ Summarize Comments ✦"}
+            </button>
+            {summary && (
+                <div className="my-2 p-2 border rounded bg-yellow-50 text-sm flex flex-row justify-between items-center">
+                    <span>{summary}</span>
+                    <button
+                        className="ml-2 text-xs text-gray-600 hover:underline"
+                        onClick={() => setSummary(null)}
+                        title="Dismiss summary"
+                    >✕</button>
+                </div>
+            )}
+            
             {/* Display comments */}
             {sortedComments.length === 0 && (
                 <div className="text-gray-500 text-sm text-center py-4">No comments yet.</div>
@@ -134,30 +163,6 @@ export default function CommentSection({ fileId, currentTime, onSeek }) {
                     />
                 )
             )}
-            <button
-                onClick={() =>
-                    summarizeLLM({
-                        sortedComments,
-                        setSummary,
-                        setError,
-                        setLoading
-                    })
-                }
-                disabled={loading || sortedComments.length === 0}
-            >
-                {loading ? "Summarizing..." : "Summarize Comments"}
-            </button>
-            {summary && (
-                <div className="my-2 p-2 border rounded bg-yellow-50 text-sm flex flex-row justify-between items-center">
-                    <span>{summary}</span>
-                    <button
-                        className="ml-2 text-xs text-gray-600 hover:underline"
-                        onClick={() => setSummary(null)}
-                        title="Dismiss summary"
-                    >✕</button>
-                </div>
-            )}
-
         </div>
     );
 }

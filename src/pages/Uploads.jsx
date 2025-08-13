@@ -57,25 +57,27 @@ export default function Uploads() {
 
     return (
         <div>
-            <h1 className="text-3xl font-bold mb-4">Uploads</h1>
+            <div className="flex items-center justify-between mb-4">
+                <h1 className="text-3xl font-bold mb-4">Uploads</h1>
 
-            <input
-                type="file"
-                accept=".mp3,.wav,.aac,.flac,.m4a,.ogg,.wma,.aiff,.mp4,
+                <input
+                    type="file"
+                    accept=".mp3,.wav,.aac,.flac,.m4a,.ogg,.wma,.aiff,.mp4,
                         .mov,.avi,.wmv,.mkv,.webm,.mpeg,.mpg"
-                multiple
-                onChange={handleUpload}
-                ref={uploadButton}
-                style={{ display: "none" }}
-            />
+                    multiple
+                    onChange={handleUpload}
+                    ref={uploadButton}
+                    style={{ display: "none" }}
+                />
 
-            <button
-                type="button"
-                onClick={handleUploadClick}
-                className="px-4 py-2 bg-green-600 text-white rounded mb-4"
-            >
-                + Import
-            </button>
+                <button
+                    type="button"
+                    onClick={handleUploadClick}
+                    className="px-8 py-4 bg-green-600 text-white rounded text-lg"
+                >
+                    + Import
+                </button>
+            </div>
 
             <Library files={files} onPlay={handlePlay} onDelete={handleDeleteFile} onRename={handleRenameFile} />
 

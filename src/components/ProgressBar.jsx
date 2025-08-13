@@ -36,7 +36,7 @@ export default function ProgressBar({
 
     return (
         <div
-            className="relative z-50 h-10 w-full mt-4 rounded cursor-pointer flex-shrink-0"
+            className="relative h-10 w-full mt-4 rounded cursor-pointer flex-shrink-0"
             style={{ minWidth: 180, maxWidth: 850 }}
             onClick={handleBarClick}
         >

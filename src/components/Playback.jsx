@@ -185,8 +185,8 @@ export default function Playback({ file, fileInfo, onBack }) {
 
                 <h2 className="text-xl font-bold mb-4 text-center">{file.name}</h2>
 
-                <div className="flex flex-col md:flex-row flex-1 w-full gap-8">
-                    <div className="flex-1 flex flex-col items-center">
+                <div className="flex flex-col md:flex-row flex-1 h-[90vh] w-full gap-8">
+                    <div className="flex-1 flex flex-col items-center justify-center">
 
                         {/* Media element at top, with large margin for stacking separation */}
                         {isAudio && (
@@ -200,13 +200,13 @@ export default function Playback({ file, fileInfo, onBack }) {
                             <video
                                 ref={mediaRef}
                                 src={src}
-                                className="mb-4 w-full flex-1 object-contain rounded max-w-[800px] max-h-[40vh]"
+                                className="mb-2 w-full flex-1 object-contain rounded max-w-[800px] max-h-[40vh]"
                                 preload="auto"
                                 style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
                             />
                         )}
 
-                        {/* ---- Progres Bar ---- */}
+                        {/* ---- Progress Bar ---- */}
                         <ProgressBar
                             currentTime={currentTime}
                             duration={mediaRef.current?.duration || 0}
@@ -216,7 +216,7 @@ export default function Playback({ file, fileInfo, onBack }) {
                         />
 
                         {/* --- Controls row below ProgressBar --- */}
-                        <div className="flex gap-4 mt-8 items-center justify-center flex-wrap">
+                        <div className="flex gap-4 mt-4 items-center justify-center flex-wrap">
                             <button
                                 onClick={handleLoopStart}
                                 className={loopStart !== null
@@ -294,7 +294,7 @@ export default function Playback({ file, fileInfo, onBack }) {
 
                     </div>
 
-                    <div className="w-full md:w-80 flex-shrink-0 overflow-auto">
+                    <div className="h-[75vh] flex-1 overflow-y-auto w-full md:w-80 flex-shrink-0">
                         <CommentSection
                             fileId={fileInfo.id}
                             currentTime={currentTime}
