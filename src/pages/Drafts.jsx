@@ -719,7 +719,7 @@ export default function Drafts() {
                             borderRadius: '10px',
                             border: 'none',
                             cursor: 'pointer',
-                            backgroundColor: '#10b981',
+                            backgroundColor: '#3b82f6',
                             color: 'white',
                             fontSize: '16px',
                             fontWeight: '600'
@@ -734,7 +734,7 @@ export default function Drafts() {
                             borderRadius: '10px',
                             border: 'none',
                             cursor: 'pointer',
-                            backgroundColor: '#3b82f6',
+                            backgroundColor: '#10b981',
                             color: 'white',
                             fontSize: '16px',
                             fontWeight: '600'
