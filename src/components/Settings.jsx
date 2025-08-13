@@ -3,7 +3,7 @@ export default function Settings({
     onClose,
     isLooping, setIsLooping,
     isMirrored, setIsMirrored,
-    // isCountingDown, setIsCountingDown, // Add when ready
+    isCountingDown, setIsCountingDown, // Add when ready
 }) {
     function handleContentClick(e) {
         e.stopPropagation();
@@ -37,6 +37,13 @@ export default function Settings({
                     >{isMirrored ? "On" : "Off"}</button>
                 </div>
                 {/* Later, add Timer Toggle here */}
+                <div className="mb-3 flex items-center justify-between">
+                    <span>Countdown Timer:</span>
+                    <button
+                        className={`px-3 py-1 rounded ${isCountingDown ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                        onClick={() => setIsCountingDown(!isCountingDown)}
+                    >{isCountingDown ? "On" : "Off"}</button>
+                </div>
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import Settings from "../components/Settings";
 
 export default function WebcamRecorder() {
     const previewRef = useRef(null);
@@ -10,6 +11,13 @@ export default function WebcamRecorder() {
     const [includeAudio, setIncludeAudio] = useState(true);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [isRecording, setisRecording] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isMirrored, setIsMirrored] = useState(false);
+    const [isCountingDown, setIsCountingDown] = useState(false);
+    const [isLooping, setIsLooping] = useState(true);
+    const [startCountDown, setStartCountDown] = useState(false);
+    const [count, setCount] = useState(3);
+    const countDownSeconds = 3;
 
 
     const chunksRef = useRef([]);
@@ -30,6 +38,16 @@ export default function WebcamRecorder() {
         }
     };
 
+    const countDown = async () => {
+        setStartCountDown(true);
+        for (let i = countDownSeconds; i > 0; i--) {
+            setCount(i);
+            await new Promise(res => setTimeout(res, 1000));
+        }
+        setStartCountDown(false);
+        setCount(countDownSeconds);
+    };
+
     const toggleRecording = () => {
             if (!isRecording) {
                 startRecording();
@@ -39,7 +57,7 @@ export default function WebcamRecorder() {
             setisRecording(!isRecording);
         }
 
-    const startRecording = () => {
+    const startRecording = async () => {
         if (!stream) {
             alert("Start camera first");
             return;
@@ -76,7 +94,10 @@ export default function WebcamRecorder() {
                 recordedRef.current.src = URL.createObjectURL(blob);
                 setStatus("Recording stopped — preview ready");
             };
-
+            
+            if (isCountingDown) {
+                await countDown();
+            }
             mediaRecorder.start();
             setRecorder(mediaRecorder);
         } catch (e) {
@@ -120,7 +141,10 @@ export default function WebcamRecorder() {
             {/* Live Preview */}
             <div>
                 <h3>Live preview</h3>
-                <video ref={previewRef} autoPlay playsInline muted style={videoStyle} />
+                <video ref={previewRef} autoPlay playsInline muted style={{
+                    ...videoStyle, // keep your existing video styles
+                    transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
+                }} />
                 <div>
                     <small>{status}</small>
                 </div>
@@ -143,12 +167,35 @@ export default function WebcamRecorder() {
                     />{" "}
                     Include audio
                 </label>
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="bg-gray-600 text-white px-4 py-2 rounded"
+                >
+                    ⚙️
+                </button>
+
+                {isSettingsOpen && (
+                    <Settings
+                        onClose={() => setIsSettingsOpen(false)}
+                        isLooping={isLooping}
+                        setIsLooping={setIsLooping}
+                        isMirrored={isMirrored}
+                        setIsMirrored={setIsMirrored}
+                        isCountingDown={isCountingDown}
+                        setIsCountingDown={setIsCountingDown}
+                    />
+                )}
             </div>
 
             <div>
                 <h3>Recorded</h3>
                 <video ref={recordedRef} controls style={videoStyle} />
             </div>
+            {isCountingDown && startCountDown && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                    <div className="text-white text-5xl font-bold">{count}</div>
+                </div>
+            )}
         </div>
     );
 }

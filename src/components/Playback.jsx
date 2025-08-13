@@ -11,7 +11,7 @@ export default function Playback({ file, fileInfo, onBack }) {
     const [loopStart, setLoopStart] = useState(null);
     const [loopEnd, setLoopEnd] = useState(null);
     const [isMirrored, setIsMirrored] = useState(false);
-    // const [isCountingDown, setIsCountingDown] = useState(false);
+    const [isCountingDown, setIsCountingDown] = useState(false);
     const [isLooping, setIsLooping] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
 
@@ -19,6 +19,9 @@ export default function Playback({ file, fileInfo, onBack }) {
     const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [startCountDown, setStartCountDown] = useState(false);
+    const [count, setCount] = useState(3);
+    const countDownSeconds = 3;
 
     useEffect(() => {
         function handleEsc(e) {
@@ -111,7 +114,17 @@ export default function Playback({ file, fileInfo, onBack }) {
     const isAudio = file.type.startsWith("audio");
     const isVideo = file.type.startsWith("video");
 
-    function togglePlayPause() {
+    const countDown = async () => {
+        setStartCountDown(true);
+        for (let i = countDownSeconds; i > 0; i--) {
+            setCount(i);
+            await new Promise(res => setTimeout(res, 1000));
+        }
+        setStartCountDown(false);
+        setCount(countDownSeconds);
+    };
+
+    async function togglePlayPause() {
         const media = mediaRef.current;
         if (!media) return;
 
@@ -128,6 +141,9 @@ export default function Playback({ file, fileInfo, onBack }) {
                 (Math.abs(media.currentTime - end) < 0.1 || media.currentTime >= end)
             ) {
                 media.currentTime = start;      // Rewind to the start breakpoint (or 0)
+            }
+            if (isCountingDown) {
+                await countDown();
             }
             media.play();
         }
@@ -263,6 +279,8 @@ export default function Playback({ file, fileInfo, onBack }) {
                                 setIsLooping={setIsLooping}
                                 isMirrored={isMirrored}
                                 setIsMirrored={setIsMirrored}
+                                isCountingDown={isCountingDown}
+                                setIsCountingDown={setIsCountingDown}
                             />
                         )}
 
@@ -284,6 +302,11 @@ export default function Playback({ file, fileInfo, onBack }) {
                         />
                     </div>
 
+                    {isCountingDown && startCountDown && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                            <div className="text-white text-5xl font-bold">{count}</div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
