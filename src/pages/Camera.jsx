@@ -124,6 +124,10 @@ export default function WebcamRecorder() {
         a.remove();
     };
 
+    const addDraft = () => {
+        alert("This will be implemented later!");
+    }
+
     const toggleAudio = () => {
         setIncludeAudio((prev) => !prev);
         if (stream) {
@@ -153,12 +157,21 @@ export default function WebcamRecorder() {
             {/* Controls */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <button className="px-4 py-2 bg-green-600 text-white rounded mb-4" onClick={startCamera}>Start Camera</button>
-                <button className="px-4 py-2 bg-green-600 text-white rounded mb-4" onClick={toggleRecording} disabled={!stream}>
-                    {isRecording ? "Stop Recording" : "Start Recording"}
-                </button>
+                {isRecording 
+                    ? <button className="px-4 py-2 bg-red-600 text-white rounded mb-4" onClick={toggleRecording} disabled={!stream}>
+                        Stop Recording
+                    </button>
+                    : <button className="px-4 py-2 bg-green-600 text-white rounded mb-4" onClick={toggleRecording} disabled={!stream}>
+                        Start Recording
+                    </button>
+                }
                 <button className="px-4 py-2 bg-green-600 text-white rounded mb-4" onClick={downloadRecording} disabled={!recordedBlob}>
                     Download
                 </button>
+                <button className="px-4 py-2 bg-green-600 text-white rounded mb-4" onClick={addDraft} disabled={!recordedBlob}>
+                    Add to Drafts
+                </button>
+
                 <label>
                     <input
                         type="checkbox"
