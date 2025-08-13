@@ -1,13 +1,10 @@
-// routes.jsx
-import Home from '../pages/Home';
 import Uploads from '../pages/Uploads';
 import Drafts from '../pages/Drafts';
-import Playback from '../pages/Playback';
 import Camera from '../pages/Camera';
 
 const routes = [
     {
-        path:'/',
+        path:'/uploads',
         element: <Uploads />,
         name: 'Uploads',
     },

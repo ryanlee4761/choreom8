@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import ProgressBar from "./ProgressBar";
 import Settings from "./Settings";
 import SpeedModal from "./SpeedModal";
 import CommentSection from "./CommentSection";
@@ -70,11 +71,10 @@ export default function Playback({ file, fileInfo, onBack }) {
             const start = loopStart ?? 0;
             const end = loopEnd ?? duration;
 
-            console.log(end);
-
-            if (media.currentTime < start) {
+            if (media.currentTime <= start) {
                 media.currentTime = start;
             }
+
             if (media.currentTime >= end) {
                 // If you want smooth looping after endpoint, also call play()
                 if (isLooping) {
@@ -148,25 +148,16 @@ export default function Playback({ file, fileInfo, onBack }) {
             setLoopEnd(null); // unset (defaults to the end of the file using logic later)
         }
     }
-    function handleLoopingUpdate() {
-        setIsLooping(!isLooping);
-    }
-    function handleMirroringUpdate() {
-        setIsMirrored(!isMirrored);
-    }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
             <div
-                className="
-                    relative bg-white p-6 rounded shadow-lg w-full max-w-2xl flex flex-col items-center
-                    w-full h-full overflow-y-auto
-                    "
+                className="relative bg-white p-6 rounded shadow-lg w-full max-w-2xl flex flex-col items-center
+                h-[90vh] max-h-[90vh]"
                 style={{
-                    maxHeight: "90vh",         // limit modal to 90% of viewport height
-                    width: "100%",             // responsive width
-                    maxWidth: "800px",         // or your favorite breakpoint
-                    overflowY: "auto"          // modal scrolls if content overflows
+                    maxHeight: "90vh",
+                    width: "100%",
+                    maxWidth: "1200px",
                 }}
             >
                 <button
@@ -175,107 +166,127 @@ export default function Playback({ file, fileInfo, onBack }) {
                 >
                     ← Back
                 </button>
+
                 <h2 className="text-xl font-bold mb-4 text-center">{file.name}</h2>
-                {isAudio && (
-                    <audio
-                        ref={mediaRef}
-                        controls
-                        src={src}
-                        className="mb-4 w-full"
-                        preload="auto"
-                    />
-                )}
-                {isVideo && (
-                    <video
-                        ref={mediaRef}
-                        controls
-                        src={src}
-                        className="mb-4 w-full"
-                        preload="auto"
-                        style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
-                    />
-                )}
-                <div className="flex gap-4 mt-2 items-center">
-                    <button
-                        onClick={handleLoopStart}
-                        className={loopStart !== null
-                            ? "bg-red-600 text-white px-4 py-2 rounded"
-                            : "bg-green-600 text-white px-4 py-2 rounded"}
-                    >
-                        {loopStart !== null ? "Reset Start" : "Set Start"}
-                    </button>
-                    <button
-                        onClick={handleLoopEnd}
-                        className={loopEnd !== null
-                            ? "bg-red-600 text-white px-4 py-2 rounded"
-                            : "bg-green-600 text-white px-4 py-2 rounded"}
-                    >
-                        {loopEnd !== null ? "Reset End" : "Set End"}
-                    </button>
-                    <button
-                        onClick={togglePlayPause}
-                        className={`
-                            bg-blue-600 text-white rounded-full
-                            w-20 h-20 flex items-center justify-center
-                            text-4xl shadow-lg transition
-                            hover:bg-blue-700 focus:outline-none
-                        `}
-                        aria-label={isPlaying ? "Pause" : "Play"}
-                    >
-                        {isPlaying ? "⏸" : "▶"}
-                    </button>
-                    <button
-                        onClick={() => setIsSpeedModalOpen(true)}
-                        className="bg-purple-600 text-white px-4 py-2 rounded"
-                    >
-                        Speed:&nbsp;<span className="font-bold">{playbackRate.toFixed(2)}x</span>
-                    </button>
-                    <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        className="bg-gray-600 text-white px-4 py-2 rounded"
-                    >
-                        ⚙️
-                    </button>
-                </div>
 
-                {isSettingsOpen && (
-                    <Settings
-                        onClose={() => setIsSettingsOpen(false)}
-                        isLooping={isLooping}
-                        setIsLooping={setIsLooping}
-                        isMirrored={isMirrored}
-                        setIsMirrored={setIsMirrored}
-                    // isCountingDown={isCountingDown}
-                    // setIsCountingDown={setIsCountingDown}
-                    />
-                )}
+                <div className="flex flex-col md:flex-row flex-1 w-full gap-8">
+                    <div className="flex-1 flex flex-col items-center">
 
-                {isSpeedModalOpen && (
-                    <SpeedModal
-                        playbackRate={playbackRate}
-                        setPlaybackRate={setPlaybackRate}
-                        onClose={() => setIsSpeedModalOpen(false)}
-                    />
-                )}
+                        {/* Media element at top, with large margin for stacking separation */}
+                        {isAudio && (
+                            <audio
+                                ref={mediaRef}
+                                src={src}
+                                preload="auto"
+                            />
+                        )}
+                        {isVideo && (
+                            <video
+                                ref={mediaRef}
+                                src={src}
+                                className="mb-4 w-full flex-1 object-contain rounded max-w-[800px] max-h-[40vh]"
+                                preload="auto"
+                                style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
+                            />
+                        )}
 
-                <CommentSection
-                    fileId={fileInfo.id}
-                    currentTime={currentTime}
-                    onSeek={ts => mediaRef.current.currentTime = ts}
-                />
+                        {/* ---- Progres Bar ---- */}
+                        <ProgressBar
+                            currentTime={currentTime}
+                            duration={mediaRef.current?.duration || 0}
+                            loopStart={loopStart}
+                            loopEnd={loopEnd}
+                            onSeek={ts => { mediaRef.current.currentTime = ts; }}
+                        />
 
-                {/* OPTIONAL: Show current loop timestamps */}
-                <div className="mt-4 text-gray-700 flex gap-8 text-sm">
-                    <div>
-                        <strong>Loop Start:</strong>{" "}
-                        {loopStart !== null ? loopStart.toFixed(2) + "s" : "Not Set"}
+                        {/* --- Controls row below ProgressBar --- */}
+                        <div className="flex gap-4 mt-8 items-center justify-center flex-wrap">
+                            <button
+                                onClick={handleLoopStart}
+                                className={loopStart !== null
+                                    ? "bg-red-600 text-white px-4 py-2 rounded"
+                                    : "bg-green-600 text-white px-4 py-2 rounded"}
+                            >
+                                {loopStart !== null ? "Reset Start" : "Set Start"}
+                            </button>
+                            <button
+                                onClick={handleLoopEnd}
+                                className={loopEnd !== null
+                                    ? "bg-red-600 text-white px-4 py-2 rounded"
+                                    : "bg-green-600 text-white px-4 py-2 rounded"}
+                            >
+                                {loopEnd !== null ? "Reset End" : "Set End"}
+                            </button>
+                            <button
+                                onClick={togglePlayPause}
+                                className={`
+                                    bg-blue-600 text-white rounded-full
+                                    w-20 h-20 flex items-center justify-center
+                                    text-4xl shadow-lg transition
+                                    hover:bg-blue-700 focus:outline-none
+                                    `}
+                                aria-label={isPlaying ? "Pause" : "Play"}
+                            >
+                                {isPlaying ? (
+                                    // Pause Icon (SVG)
+                                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                                        <rect x="8" y="8" width="6" height="20" fill="currentColor" />
+                                        <rect x="22" y="8" width="6" height="20" fill="currentColor" />
+                                    </svg>
+                                ) : (
+                                    // Play Icon (SVG)
+                                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                                        <polygon points="10,8 30,18 10,28" fill="currentColor" />
+                                    </svg>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setIsSpeedModalOpen(true)}
+                                className="bg-purple-600 text-white px-4 py-2 rounded"
+                            >
+                                Speed:&nbsp;<span className="font-bold">{playbackRate.toFixed(2)}x</span>
+                            </button>
+                            <button
+                                onClick={() => setIsSettingsOpen(true)}
+                                className="bg-gray-600 text-white px-4 py-2 rounded"
+                            >
+                                ⚙️
+                            </button>
+                        </div>
+
+                        {/* --- Modals and extra UI --- */}
+
+                        {isSettingsOpen && (
+                            <Settings
+                                onClose={() => setIsSettingsOpen(false)}
+                                isLooping={isLooping}
+                                setIsLooping={setIsLooping}
+                                isMirrored={isMirrored}
+                                setIsMirrored={setIsMirrored}
+                            />
+                        )}
+
+                        {isSpeedModalOpen && (
+                            <SpeedModal
+                                playbackRate={playbackRate}
+                                setPlaybackRate={setPlaybackRate}
+                                onClose={() => setIsSpeedModalOpen(false)}
+                            />
+                        )}
+
                     </div>
-                    <div>
-                        <strong>Loop End:</strong>{" "}
-                        {loopEnd !== null ? loopEnd.toFixed(2) + "s" : "Not Set"}
+
+                    <div className="w-full md:w-80 flex-shrink-0 overflow-auto">
+                        <CommentSection
+                            fileId={fileInfo.id}
+                            currentTime={currentTime}
+                            onSeek={ts => mediaRef.current.currentTime = ts}
+                        />
                     </div>
+
                 </div>
             </div>
-        </div >
+        </div>
     );
+
 }
